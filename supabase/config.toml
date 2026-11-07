@@ -1,0 +1,4 @@
+project_id = "kolkata-explorer"
+
+[functions.place-details]
+verify_jwt = true
