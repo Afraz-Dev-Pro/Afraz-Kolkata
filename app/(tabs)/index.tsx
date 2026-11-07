@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { busRoutes, findItem, foodShops, places, shoppingAreas } from '../src/data/kolkataCatalog';
-import { useFavorites } from '../src/providers/FavoritesProvider';
-import { useAppTheme } from '../src/theme/ThemeProvider';
+import { busRoutes, findItem, foodShops, places, shoppingAreas } from '../../src/data/kolkataCatalog';
+import { useFavorites } from '../../src/providers/FavoritesProvider';
+import { useAppTheme } from '../../src/theme/ThemeProvider';
 
 const modules = [
   { title: 'Places', href: '/places', icon: '✦', subtitle: 'Landmarks & local stories', color: 'placeCard' },

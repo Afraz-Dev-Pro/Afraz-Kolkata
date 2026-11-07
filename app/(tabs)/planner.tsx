@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import { findItem, places, foodShops, shoppingAreas, type CatalogItem } from '../src/data/kolkataCatalog';
-import { useAppTheme } from '../src/theme/ThemeProvider';
+import { findItem, places, foodShops, shoppingAreas, type CatalogItem } from '../../src/data/kolkataCatalog';
+import { useAppTheme } from '../../src/theme/ThemeProvider';
 
 const directory = [...places, ...foodShops, ...shoppingAreas];
 export default function PlannerScreen() {
