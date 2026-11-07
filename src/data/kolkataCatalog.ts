@@ -1,4 +1,4 @@
-export type CatalogItem = { id: string; name: string; category: string; neighborhood: string; description: string; address?: string; source: string; tags: string[]; status?: string };
+export type CatalogItem = { id: string; name: string; category: string; neighborhood: string; description: string; address?: string; source: string; tags: string[]; status?: string; imageUrl?: string; imageAttribution?: string; imageAttributionUrl?: string };
 
 const tourism = 'Incredible India, Kolkata city guide (checked 4 Nov 2026)';
 const shoppingSource = 'Incredible India West Bengal destination guide; market specialties are discovery leads, not verified price claims (checked 4 Nov 2026)';
@@ -69,6 +69,68 @@ export const busRoutes: CatalogItem[] = [
   {id:'wbtc-s24',name:'S-24 · Kamalgazi ↔ Howrah',category:'WBTC bus route',neighborhood:'Kolkata',description:'Route endpoints listed by WBTC. Confirm current service and stops before boarding.',source:'WBTC official route listing (checked 4 Nov 2026)',tags:['Bus','Kamalgazi','Howrah'],status:'Official listing; no live tracking, timetable or fare supplied.'},
   {id:'wbtc-s22',name:'S-22 · Karunamoyee ↔ Sakuntala Park',category:'WBTC bus route',neighborhood:'Kolkata',description:'Route endpoints listed by WBTC. Confirm current service and stops before boarding.',source:'WBTC official route listing (checked 4 Nov 2026)',tags:['Bus','Karunamoyee','Sakuntala Park'],status:'Official listing; no live tracking, timetable or fare supplied.'},
 ];
+
+export type MetroLineInfo = { lineId: string; lineName: string; lineColor: string; allStations: string[]; serviceNote?: string; source: string; freshness: string };
+export const metroLines: MetroLineInfo[] = [
+  { lineId:'blue-line',lineName:'Blue Line · North–South',lineColor:'#2196F3',allStations:['Dakshineswar','Baranagar','Noapara','Dum Dum','Belgachia','Shyambazar','Shobhabazar Sutanuti','Girish Park','Mahatma Gandhi Road','Central','Chandni Chowk','Esplanade','Park Street','Maidan','Rabindra Sadan','Netaji Bhavan','Jatin Das Park','Kalighat','Rabindra Sarobar','Mahanayak Uttam Kumar','Netaji','Masterda Surya Sen','Gitanjali','Kavi Nazrul','Shahid Khudiram','Kavi Subhash'],serviceNote:'Metro Railway listed Blue Line commercial services as suspended south of Shahid Khudiram in its 11 Sep 2026 service notice. Confirm current operations before travel.',source:'Metro Railway Kolkata official line and service information · https://mtp.indianrailways.gov.in/offerings/schemes-and-services/preview/128',freshness:'Reviewed 11 Sep 2026' },
+  { lineId:'green-line',lineName:'Green Line · East–West',lineColor:'#4CAF50',allStations:['Howrah Maidan','Howrah','Mahakaran','Esplanade','Sealdah','Phool Bagan','Salt Lake Stadium','Bengal Chemical','City Centre','Central Park','Karunamoyee','Salt Lake Sector V'],source:'Kolkata Metro Rail Corporation station list · https://www.kmrc.in/stations.php',freshness:'Checked 7 Nov 2026' },
+  { lineId:'purple-line',lineName:'Purple Line · Joka–Majerhat',lineColor:'#9C27B0',allStations:['Joka','Thakurpukur','Sakher Bazar','Behala Chowrasta','Behala Bazar','Taratala','Majerhat'],serviceNote:'This is the published operating section; the Esplanade extension is not presented as open service.',source:'Metro Railway Kolkata official network information · https://mtp.indianrailways.gov.in/ministry/about-us',freshness:'Checked 7 Nov 2026' },
+  { lineId:'orange-line',lineName:'Orange Line · Kavi Subhash–Beleghata',lineColor:'#FF9800',allStations:['Kavi Subhash','Satyajit Ray','Jyotirindra Nandi','Kavi Sukanta','Hemanta Mukhopadhyay','VIP Bazar','Ritwik Ghatak','Barun Sengupta','Beleghata'],source:'Metro Railway Kolkata official service page · https://mtp.indianrailways.gov.in/offerings/schemes-and-services/preview/131',freshness:'Reviewed 25 May 2026' },
+  { lineId:'yellow-line',lineName:'Yellow Line · Noapara–Jai Hind Bimanbandar',lineColor:'#E8B51D',allStations:['Noapara','Dum Dum Cantonment','Jessore Road','Jai Hind Bimanbandar'],source:'Metro Railway Kolkata official network information · https://mtp.indianrailways.gov.in/offerings/schemes-and-services/view/113',freshness:'Reviewed 11 Sep 2026' },
+];
+
+export type PlaceMetroAccess = { placeId: string; lineId: string; stationName: string; walkingMinutes?: number; direction?: string; note: string; source: string; freshness: string; confidence: 'high' | 'medium' | 'low' };
+// Only exact destination/area-to-station name matches are listed; these do not imply a nearest entrance or walk duration.
+export const placeMetroAccess: PlaceMetroAccess[] = [
+  ...[['dakshineswar','Dakshineswar'],['maidan','Maidan'],['park-street','Park Street'],['kalighat','Kalighat'],['rabindra-sarobar','Rabindra Sarobar']].map(([placeId,stationName])=>({placeId,stationName,lineId:'blue-line',note:'The station shares the destination or area name. Walking distance to the entrance has not been verified.',source:'Metro Railway Kolkata official Blue Line information · https://mtp.indianrailways.gov.in/offerings/schemes-and-services/preview/128',freshness:'Reviewed 11 Sep 2026',confidence:'medium' as const})),
+];
+
+export type PlaceBusAccess = { placeId: string; routeId: string; nearestStop?: string; keyStops?: string[]; note: string; source: string; freshness: string; confidence: 'high' | 'medium' | 'low' };
+// Match only route tags that explicitly name the catalog destination or its neighborhood.
+export const placeBusStops: PlaceBusAccess[] = places.flatMap((place)=>busRoutes.filter((route)=>route.tags.some((tag)=>tag.toLowerCase()===place.name.toLowerCase()||tag.toLowerCase()===place.neighborhood.toLowerCase())).map((route)=>({placeId:place.id,routeId:route.id,note:'This official route listing names the destination or area; its nearest stop and current service have not been confirmed.',source:route.source,freshness:'Checked 4 Nov 2026',confidence:'medium' as const})));
+
+export type NearbyFood = { placeId: string; foodId: string; distanceNote: string; speciality: string };
+const foodMatchesByPlace: Record<string, string[]> = {
+  'park-street':['flurys','peter-cat','mocambo','trincas','kusum-rolls','bar-b-q'],
+  'college-street':['coffee-house'],
+  'indian-coffee-house':['coffee-house'],
+  'new-market':['aminia','nizams'],
+};
+export const nearbyFoodMap: NearbyFood[] = Object.entries(foodMatchesByPlace).flatMap(([placeId, foodIds]) => foodIds.flatMap((foodId) => {
+  const food = foodShops.find((item) => item.id === foodId);
+  return food ? [{ placeId, foodId, distanceNote: 'Same named district; walking distance not verified.', speciality: food.tags.slice(0, 2).join(' · ') }] : [];
+}));
+
+export type PlaceCost = { placeId: string; entryFee?: string; cameraFee?: string; avgCostPerPerson?: string; breakdown?: string[]; lastVerified?: string; disclaimer: string; source?: string; freshness?: string; confidence: 'high' | 'medium' | 'low'; verificationState: 'verified' | 'unverified' };
+// Intentionally empty until venue-published prices can be checked. Do not fill with illustrative prices.
+export const placeCosts: PlaceCost[] = [
+  {placeId:'victoria-memorial',entryFee:'Museum galleries: Indian nationals ₹50; SAARC nationals ₹100; other foreign nationals ₹500. Garden: ₹30 per person per entry.',breakdown:['Museum galleries: 10:00 AM–6:00 PM; closed Mondays and designated national holidays.','Gardens: 6:00 AM–6:00 PM; open daily.','Ticket counters close 30 minutes before closing.'],lastVerified:'7 Nov 2026',disclaimer:'Officially published rates and hours; confirm the venue notice before visiting. No total trip-cost estimate is available.',source:'Victoria Memorial Hall · https://victoriamemorial-cal.org/visit-us/',freshness:'Official visitor page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+  {placeId:'indian-museum',entryFee:'Adult ₹75; under 18 ₹20; foreign nationals ₹500. Organised school groups up to Class XII: free (conditions apply).',cameraFee:'Smartphone photography ₹50; DSLR ₹100; listed photography rates incur 18% GST.',breakdown:['Official visitor page states the galleries will remain closed to the public during 2026.','Usual visitor hours listed: Tuesday–Sunday, 10:00 AM–6:00 PM; Mondays closed.'],lastVerified:'7 Nov 2026',disclaimer:'The official page reports a 2026 gallery closure. Confirm reopening and current charges before planning a visit.',source:'Indian Museum Visitor Information · https://indianmuseumkolkata.org/visitors-information/',freshness:'Official visitor page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+  {placeId:'alipore-zoo',entryFee:'Up to age 5: ₹20; visitors above age 5: ₹50.',breakdown:['Video photography: ₹250.','Zoo grounds: 9:00 AM–5:00 PM; ticket counters close 4:30 PM.','Aquarium: 10:30 AM–4:30 PM; separate fee applies.','Weekly closure is Thursday, with a holiday exception and alternate closure rule.'],lastVerified:'7 Nov 2026',disclaimer:'Official fee and hours page; check the zoo’s current notices for holiday changes and aquarium tickets.',source:'Zoological Garden, Alipore · https://kolkatazoo.in/web/fee-zoo-hours.php',freshness:'Official fee page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+  {placeId:'science-city',breakdown:['Fulldome 3D Digital Theatre general visitor ticket: ₹150 per person.','This is a separate show ticket; the cited source does not state a general site-entry total.'],lastVerified:'7 Nov 2026',disclaimer:'Only the cited 3D show rate is included. Check official online ticketing for current site admission and other activities.',source:'Science City Kolkata · https://sciencecitykolkata.org.in/tickets-rates/',freshness:'Official ticket page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+];
+
+export type QuickFacts = { timeNeeded?: string; bestTimeToVisit?: string; bestSeason?: string; closedOn?: string; photography?: string; howToReach?: string; source?: string; freshness?: string; confidence: 'high' | 'medium' | 'low'; verificationState: 'verified' | 'unverified' };
+export const placeQuickFacts: Record<string, QuickFacts> = {
+  'victoria-memorial':{closedOn:'Museum galleries: Mondays and listed national holidays. Gardens: open daily.',source:'Victoria Memorial Hall · https://victoriamemorial-cal.org/visit-us/',freshness:'Official visitor page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+  'indian-museum':{closedOn:'Mondays; official page also says galleries remain closed to the public during 2026.',source:'Indian Museum · https://indianmuseumkolkata.org/visitors-information/',freshness:'Official visitor page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+  'alipore-zoo':{closedOn:'Usually Thursday; the official holiday exception shifts weekly closure to the next working day.',source:'Zoological Garden, Alipore · https://kolkatazoo.in/web/fee-zoo-hours.php',freshness:'Official fee page checked 7 Nov 2026',confidence:'high',verificationState:'verified'},
+};
+
+const unsplash = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=80`;
+const media: Record<string, { imageUrl: string; imageAttribution: string; imageAttributionUrl: string }> = {
+  'victoria-memorial': { imageUrl: unsplash('photo-1666876419569-bd714131b4c1'), imageAttribution: 'Photo by Yan Chakraborty on Unsplash · landmark image', imageAttributionUrl: 'https://unsplash.com/photos/a-large-white-building-with-a-dome-and-many-trees-in-front-of-it-with-victoria-memorial-hall-in-the-background-vQz3piNND1I' },
+  'howrah-bridge': { imageUrl: unsplash('photo-1742325646212-f917ba1feeaa'), imageAttribution: 'Photo by Paras Verma on Unsplash · landmark image', imageAttributionUrl: 'https://unsplash.com/photos/the-howrah-bridge-stands-beautifully-in-the-dusk-KucspYX1Ft0' },
+};
+const foodCategoryImage = { imageUrl: unsplash('photo-1546069901-ba9599a7e63c'), imageAttribution: 'Category illustration by Anh Nguyen on Unsplash · not a photo of this venue or its dishes', imageAttributionUrl: 'https://unsplash.com/photos/vegetable-and-meat-on-bowl-kcA-c3f_3FE' };
+const parkCategoryImage = { imageUrl: unsplash('photo-1756970959936-b935d7725314'), imageAttribution: 'Category illustration by Dhiraj Dey on Unsplash · not a photo of this exact park', imageAttributionUrl: 'https://unsplash.com/photos/lush-green-field-with-distant-buildings-under-trees-ziBdlHAwYPU' };
+const templePhoto = { imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Dakshineswar_Kali_temple%2C_Kolkata%2C_West_Bengal%2C_India.JPG', imageAttribution: 'Photo by Kundansonuj · Wikimedia Commons · CC BY-SA 3.0 · unchanged', imageAttributionUrl: 'https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_temple,_Kolkata,_West_Bengal,_India.JPG' };
+const landmarkCategoryImage = { imageUrl: unsplash('photo-1666876419569-bd714131b4c1'), imageAttribution: 'Kolkata landmark category illustration by Yan Chakraborty on Unsplash · not this venue', imageAttributionUrl: 'https://unsplash.com/photos/a-large-white-building-with-a-dome-and-many-trees-in-front-of-it-with-victoria-memorial-hall-in-the-background-vQz3piNND1I' };
+for (const item of places) {
+  const image = media[item.id] ?? (item.category.toLowerCase().includes('temple') ? templePhoto : /park|lake|outdoors|riverside|open space/i.test(`${item.category} ${item.tags.join(' ')}`) ? parkCategoryImage : landmarkCategoryImage);
+  Object.assign(item, image);
+}
+for (const item of foodShops) Object.assign(item, media[item.id] ?? foodCategoryImage);
 
 export const shoppingCategories = ['Sarees','Bengali handloom','Kurtis','Salwar suits','Western wear','Dresses and tops','Jeans and trousers','Blouses','Fabrics','Women’s footwear','Handbags','Jewellery','Artificial jewellery','Cosmetics','Fashion accessories','Shirts','T-shirts','Formal wear','Panjabi and kurta','Suits','Shoes','Watches','Kids’ clothes','School uniforms','Toys','School bags','Mobile phones','Mobile accessories','Computers and laptops','Electrical equipment','Academic books','Second-hand books','Fiction','Stationery','Furniture','Home decoration','Kitchenware','Gifts','Handicrafts','Wedding shopping','Puja shopping','Sports equipment','Travel accessories','Leather products','Speciality food'];
 
