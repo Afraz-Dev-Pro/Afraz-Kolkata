@@ -3,13 +3,13 @@
     "name": "Afraz Kolkata",
     "slug": "afraz-kolkata",
     "scheme": "kolkataexplorer",
-    "version": "1.2.4",
+    "version": "1.2.5",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "com.afraz.kolkataexplorer",
-      "versionCode": 6,
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-foreground.png",
         "backgroundColor": "#11172D"

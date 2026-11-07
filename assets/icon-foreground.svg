@@ -4,6 +4,8 @@
     <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd078"/><stop offset="1" stop-color="#e98255"/></linearGradient>
   </defs>
   <g transform="translate(112 112) scale(.78)">
+  <rect x="112" y="61" width="800" height="106" rx="30" fill="#11172d" fill-opacity=".9" stroke="#ffc45b" stroke-width="4"/>
+  <text x="512" y="132" text-anchor="middle" fill="#fff0ad" font-family="Arial, sans-serif" font-size="58" font-weight="700" letter-spacing="7">AFRAZ KOLKATA</text>
   <circle cx="690" cy="343" r="160" fill="url(#sun)"/>
   <path d="M0 666 78 640 115 657 164 623 218 653 271 631 322 656 368 637 421 659 474 642 525 660 582 633 642 658 696 636 756 661 814 635 875 657 926 633 1024 655 V770 H0Z" fill="#402943" opacity=".77"/>
   <g fill="#172039">

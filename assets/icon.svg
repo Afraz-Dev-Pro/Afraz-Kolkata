@@ -23,6 +23,8 @@
     </filter>
   </defs>
   <rect width="1024" height="1024" fill="url(#sky)"/>
+  <rect x="112" y="61" width="800" height="106" rx="30" fill="#11172d" fill-opacity=".82" stroke="#ffc45b" stroke-width="3"/>
+  <text x="512" y="132" text-anchor="middle" fill="#fff0ad" font-family="Arial, sans-serif" font-size="58" font-weight="700" letter-spacing="7">AFRAZ KOLKATA</text>
   <circle cx="690" cy="343" r="211" fill="#ffb65c" opacity=".34" filter="url(#soft-glow)"/>
   <circle cx="690" cy="343" r="160" fill="url(#sun)"/>
   <path d="M0 582 Q180 520 350 571 T720 554 T1024 566 V820 H0Z" fill="url(#horizon)"/>
