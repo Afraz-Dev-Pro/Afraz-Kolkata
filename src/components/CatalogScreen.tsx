@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { CatalogItem } from '../data/kolkataCatalog';
@@ -8,24 +8,25 @@ import { useAppTheme } from '../theme/ThemeProvider';
 export function CatalogScreen({ title, subtitle, items, filterLabel }: { title: string; subtitle: string; items: CatalogItem[]; filterLabel?: string }) {
   const [query,setQuery] = useState('');
   const [filter,setFilter] = useState('All');
+  const router = useRouter();
   const { colors } = useAppTheme();
   const { isFavorite, toggleFavorite } = useFavorites();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const filters = ['All',...Array.from(new Set(items.flatMap((item)=>item.tags))).slice(0,8)];
   const visible = items.filter((item)=>`${item.name} ${item.category} ${item.neighborhood} ${item.tags.join(' ')}`.toLowerCase().includes(query.toLowerCase()) && (filter==='All'||item.tags.includes(filter)));
   return <ScrollView style={styles.page} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-    <Link href="/" style={styles.back}>‹  Home</Link><Text style={styles.eyebrow}>AFRAZ KOLKATA</Text><Text style={styles.title}>{title}</Text><Text style={styles.subtitle}>{subtitle}</Text>
+    <Pressable accessibilityRole="button" onPress={()=>router.replace('/')} hitSlop={10}><Text style={styles.back}>‹  Home</Text></Pressable><Text style={styles.eyebrow}>AFRAZ KOLKATA</Text><Text style={styles.title}>{title}</Text><Text style={styles.subtitle}>{subtitle}</Text>
     <TextInput accessibilityLabel={`Search ${title}`} placeholder={filterLabel ?? `Search ${title.toLowerCase()}…`} placeholderTextColor={colors.textMuted} style={styles.search} value={query} onChangeText={setQuery} />
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters}>{filters.map((item)=><Pressable accessibilityRole="button" accessibilityState={{selected:filter===item}} key={item} onPress={()=>setFilter(item)} style={[styles.filter,filter===item&&styles.activeFilter]}><Text style={[styles.filterText,filter===item&&styles.activeFilterText]}>{item}</Text></Pressable>)}</ScrollView>
     <Text style={styles.count}>{visible.length} DISCOVERIES · SOURCES SHOWN ON EACH CARD</Text>
     {visible.map((item,index)=><View key={item.id} style={styles.card}>
-      <Link href={{pathname:'/places/[id]',params:{id:item.id}}} asChild><Pressable accessibilityRole="link" accessibilityLabel={`Open ${item.name} details`}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.name} details`} onPress={()=>router.push({pathname:'/places/[id]',params:{id:item.id}})}>
         <View style={[styles.art,{backgroundColor:[colors.placeCard,colors.foodCard,colors.routeCard,colors.shoppingCard][index%4]}]}>
           {item.imageUrl ? <Image source={{uri:item.imageUrl}} accessibilityLabel={`${item.name} image`} resizeMode="cover" style={styles.image}/> : <Text style={styles.glyph}>{item.category.toLowerCase().includes('food')||item.tags.some(t=>['Biryani','Sweets','Rolls','Cafe','Chinese','Bakery'].includes(t))?'◉':item.category.toLowerCase().includes('market')||item.category.toLowerCase().includes('shopping')||item.category.toLowerCase().includes('book')?'⌑':'✦'}</Text>}
           {item.imageAttribution ? <Text style={styles.photoCredit}>{item.imageAttribution}</Text> : null}
         </View>
         <View style={styles.body}><Text style={styles.category}>{item.category.toUpperCase()} · {item.neighborhood.toUpperCase()}</Text><Text style={styles.name}>{item.name}</Text><Text style={styles.description} numberOfLines={3}>{item.description}</Text><Text style={styles.tagline}>{item.tags.join('  ·  ')}</Text><Text style={styles.source}>ⓘ {item.source}</Text>{item.status?<Text style={styles.status}>{item.status}</Text>:null}</View>
-      </Pressable></Link>
+      </Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={`${isFavorite(item.id)?'Remove from':'Add to'} favorites: ${item.name}`} accessibilityState={{selected:isFavorite(item.id)}} onPress={()=>toggleFavorite(item.id)} style={styles.favorite}><Text style={styles.favoriteText}>{isFavorite(item.id)?'♥':'♡'}</Text></Pressable>
     </View>)}
     {!visible.length?<View style={styles.empty}><Text style={styles.name}>No matches for this filter</Text><Text style={styles.description}>Try a broader search or choose “All”.</Text></View>:null}

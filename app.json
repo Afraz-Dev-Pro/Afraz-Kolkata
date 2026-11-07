@@ -3,12 +3,12 @@
     "name": "Afraz Kolkata",
     "slug": "afraz-kolkata",
     "scheme": "kolkataexplorer",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "com.afraz.kolkataexplorer",
-      "versionCode": 3
+      "versionCode": 4
     },
     "plugins": [
       "expo-router"

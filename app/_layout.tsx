@@ -16,16 +16,21 @@ function MainTabs(){
   const {colors,mode}=useAppTheme();
   const [showSplash,setShowSplash]=useState(true);
   const opacity=useRef(new Animated.Value(1)).current;
-  useEffect(()=>{const timer=setTimeout(()=>Animated.timing(opacity,{toValue:0,duration:450,useNativeDriver:true}).start(()=>setShowSplash(false)),550);return()=>clearTimeout(timer);},[opacity]);
-  const tab=(title:string,label:string,glyph:string)=><Tabs.Screen key={title} name={title} options={{title:label,tabBarLabel:label,tabBarAccessibilityLabel:label,tabBarIcon:({color})=><Text style={{color,fontSize:17,fontWeight:'800'}}>{glyph}</Text>}}/>;
+  useEffect(()=>{
+    const start=setTimeout(()=>Animated.timing(opacity,{toValue:0,duration:400,useNativeDriver:true}).start(),450);
+    // The splash is decorative only and must never block navigation or taps.
+    const safety=setTimeout(()=>setShowSplash(false),1250);
+    return()=>{clearTimeout(start);clearTimeout(safety);opacity.stopAnimation();};
+  },[opacity]);
+  const tab=(title:string,label:string,glyph:string)=><Tabs.Screen key={title} name={title} options={{title:label,tabBarLabel:label,tabBarAccessibilityLabel:`Open ${label}`,tabBarIcon:({color,focused})=><View style={{width:37,height:27,borderRadius:14,alignItems:'center',justifyContent:'center',backgroundColor:focused?colors.primaryMuted:'transparent'}}><Text style={{color,fontSize:18,fontWeight:'900'}}>{glyph}</Text></View>}}/>;
   return <View style={{flex:1,backgroundColor:colors.background}}>
     <StatusBar style={mode==='dark'?'light':'dark'}/>
-    <Tabs screenOptions={{headerShown:false,tabBarStyle:{backgroundColor:colors.surface,borderTopColor:colors.surfaceBorder,height:62,paddingTop:5,paddingBottom:7},tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.textMuted,tabBarLabelStyle:{fontSize:10,fontWeight:'700'}}}>
+    <Tabs screenOptions={{headerShown:false,tabBarStyle:{backgroundColor:colors.surface,borderTopColor:colors.surfaceBorder,borderTopWidth:1,height:72,paddingTop:7,paddingBottom:9,elevation:12},tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.textMuted,tabBarLabelStyle:{fontSize:9,fontWeight:'800'}}}>
       <Tabs.Screen name="index" options={{href:null}}/>
       {tab('places','Places','⌖')}{tab('food','Food','◉')}{tab('shopping','Shop','⌑')}{tab('routes','Routes','↗')}{tab('planner','Planner','☷')}
       <Tabs.Screen name="search" options={{href:null}}/><Tabs.Screen name="places/[id]" options={{href:null}}/>
     </Tabs>
-    {showSplash?<Animated.View style={[styles.splash,{backgroundColor:colors.background,opacity}]}><Text style={[styles.brand,{color:colors.secondary}]}>AFRAZ KOLKATA</Text><Text style={[styles.caption,{color:colors.textSecondary}]}>Explore the city, your way</Text><View style={[styles.dot,{backgroundColor:colors.primary}]}/></Animated.View>:null}
+    {showSplash?<Animated.View pointerEvents="none" style={[styles.splash,{backgroundColor:colors.background,opacity}]}><Text style={[styles.brand,{color:colors.secondary}]}>AFRAZ KOLKATA</Text><Text style={[styles.caption,{color:colors.textSecondary}]}>Explore the city, your way</Text><View style={[styles.dot,{backgroundColor:colors.primary}]}/></Animated.View>:null}
   </View>;
 }
 
