@@ -1,0 +1,145 @@
+name: Build Android APK & Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish/update GitHub Release with APK'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript check
+        run: pnpm run typecheck
+
+      - name: Run unit tests
+        run: pnpm run test
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Android Release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+        env:
+          CI: false
+
+      - name: Prepare APK Artifacts
+        run: |
+          mkdir -p release-artifacts
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            cp "$APK_PATH" release-artifacts/AfrazKolkata-v1.2.6.apk
+            cp "$APK_PATH" release-artifacts/AfrazKolkata.apk
+            echo "Release APK prepared successfully at release-artifacts/"
+            ls -lh release-artifacts/
+          else
+            echo "Error: Release APK not found!"
+            exit 1
+          fi
+
+      - name: Upload APK as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AfrazKolkata-v1.2.6-Android-APK
+          path: release-artifacts/*.apk
+          retention-days: 90
+
+      - name: Create or Update GitHub Release
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.2.6' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('Afraz Kolkata {0}', github.ref_name) || 'Afraz Kolkata v1.2.6' }}
+          body: |
+            ## 🏛️ Afraz Kolkata — Android Release
+
+            Official Android release for **Afraz Kolkata** — a curated, source-verified discovery guide and offline day planner for the City of Joy.
+
+            ### ✨ Key Features
+            - **Curated City Discovery**: 20 cultural & historic places, 20 food & sweet listings, 10 iconic shopping markets, and 5 transit routes.
+            - **About Me Section**: Connect directly with creator **Afraz Ahamed** via LinkedIn & GitHub links on the Home tab.
+            - **Offline Multi-Stop Planner**: Assemble multi-stop itineraries, reorder stops, and share your plan.
+            - **Device Favorites**: Quick heart toggle saves favorite spots locally to AsyncStorage.
+            - **Custom Branded Icon**: Victoria Memorial sunset silhouette with iconic Kolkata yellow taxi.
+            - **Strict Sourced Integrity**: Every venue and dish includes citation source, verification status, and checked dates.
+            - **Light & Dark Theme**: Warm Kolkata tones (Saffron, Coral, Teal, Indigo).
+
+            ---
+
+            ### 📲 How to Install the APK on Android
+            1. **Download**: Click **`AfrazKolkata-v1.2.6.apk`** below under **Assets**.
+            2. **Open**: Tap the downloaded file in your browser or notification shade.
+            3. **Permission**: If prompted with *"Install unknown apps"*, tap **Settings** and toggle **"Allow from this source"**.
+            4. **Install**: Tap **Install** and launch **Afraz Kolkata**!
+
+            ---
+            *Universal APK: Compatible with Android 7.0+ (API 24+) across `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`.*
+          files: |
+            release-artifacts/AfrazKolkata-v1.2.6.apk
+            release-artifacts/AfrazKolkata.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
