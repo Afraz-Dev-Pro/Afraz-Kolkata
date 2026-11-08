@@ -1,3 +1,6 @@
+packages:
+  - '.'
+
 allowBuilds:
   dtrace-provider: false
   protobufjs: true
